@@ -206,15 +206,35 @@ def load_data() -> pd.DataFrame:
     return df
 
 # ── 카카오맵 HTML (클러스터링 + 범례 + 코스 마커 + 운영시간/홈페이지) ──
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_kakao_sdk_script(key: str) -> str:
+    try:
+        resp = requests.get(
+            "https://dapi.kakao.com/v2/maps/sdk.js",
+            params={"appkey": key, "autoload": "false"},
+            timeout=8,
+        )
+        resp.raise_for_status()
+        sdk_script = resp.text.replace("http://t1.daumcdn.net", "https://t1.daumcdn.net")
+        sdk_script = sdk_script.replace('s+"//t1.daumcdn.net', '"https://t1.daumcdn.net')
+        return sdk_script.replace("</script", "<\\/script")
+    except Exception:
+        return ""
+
 def build_map_html(places: list[dict], key: str, course_places: list[dict] = None) -> str:
     places_js = json.dumps(places,          ensure_ascii=False)
     course_js = json.dumps(course_places or [], ensure_ascii=False)
     cat_js    = json.dumps(CAT_COLORS,      ensure_ascii=False)
     size_js   = json.dumps(SIZE_COLORS,     ensure_ascii=False)
+    sdk_script = load_kakao_sdk_script(key)
     sdk_loader = (
-        f'<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={key}"'
-        ' onerror="handleKakaoMapLoadError()"></script>'
-        '<script>initKakaoMap();</script>'
+        f'<script>{sdk_script}</script><script>initKakaoMap();</script>'
+        if sdk_script
+        else (
+            '<script src="https://dapi.kakao.com/v2/maps/sdk.js?'
+            f'appkey={urllib.parse.quote(key)}&autoload=false" '
+            'onload="initKakaoMap()" onerror="handleKakaoMapLoadError()"></script>'
+        )
     )
 
     if course_places:
