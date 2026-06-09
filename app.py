@@ -212,8 +212,9 @@ def build_map_html(places: list[dict], key: str, course_places: list[dict] = Non
     cat_js    = json.dumps(CAT_COLORS,      ensure_ascii=False)
     size_js   = json.dumps(SIZE_COLORS,     ensure_ascii=False)
     sdk_loader = (
-        f'<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={key}&autoload=false"'
-        ' onload="initKakaoMap()" onerror="handleKakaoMapLoadError()"></script>'
+        f'<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={key}"'
+        ' onerror="handleKakaoMapLoadError()"></script>'
+        '<script>initKakaoMap();</script>'
     )
 
     if course_places:
@@ -342,7 +343,7 @@ def build_map_html(places: list[dict], key: str, course_places: list[dict] = Non
         throw new Error('Kakao Maps SDK is not available.');
       }}
 
-      kakao.maps.load(function(){{
+      (function(){{
         var map=new kakao.maps.Map(document.getElementById('map'),{{center:new kakao.maps.LatLng(35.9,127.8),level:13}});
         var iw=new kakao.maps.InfoWindow({{zIndex:1}});
         var C={cat_js};
@@ -499,7 +500,7 @@ def build_map_html(places: list[dict], key: str, course_places: list[dict] = Non
   }});
   if(provinceOverlays.length>0){{map.setBounds(provinceBounds,80);}}
 }}
-      }});
+      }})();
     }}catch(e){{
       showMapError('카카오 지도를 초기화하지 못했습니다.<br>'+String(e.message||e));
       console.error(e);
