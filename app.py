@@ -206,29 +206,14 @@ def load_data() -> pd.DataFrame:
     return df
 
 # ── 카카오맵 HTML (클러스터링 + 범례 + 코스 마커 + 운영시간/홈페이지) ──
-@st.cache_data(ttl=3600, show_spinner=False)
-def load_kakao_sdk_script(key: str) -> str:
-    try:
-        resp = requests.get(
-            "https://dapi.kakao.com/v2/maps/sdk.js",
-            params={"appkey": key, "autoload": "false"},
-            timeout=8,
-        )
-        resp.raise_for_status()
-        return resp.text
-    except Exception:
-        return ""
-
 def build_map_html(places: list[dict], key: str, course_places: list[dict] = None) -> str:
     places_js = json.dumps(places,          ensure_ascii=False)
     course_js = json.dumps(course_places or [], ensure_ascii=False)
     cat_js    = json.dumps(CAT_COLORS,      ensure_ascii=False)
     size_js   = json.dumps(SIZE_COLORS,     ensure_ascii=False)
-    sdk_script_js = json.dumps(load_kakao_sdk_script(key))
     sdk_loader = (
-        '<script src="https://dapi.kakao.com/v2/maps/sdk.js?'
-        f'appkey={urllib.parse.quote(key)}&autoload=false" '
-        'onload="initKakaoMap()" onerror="handleKakaoMapLoadError()"></script>'
+        f'<script src="//dapi.kakao.com/v2/maps/sdk.js?appkey={key}&autoload=false"'
+        ' onload="initKakaoMap()" onerror="handleKakaoMapLoadError()"></script>'
     )
 
     if course_places:
@@ -348,27 +333,8 @@ def build_map_html(places: list[dict], key: str, course_places: list[dict] = Non
   }}
 
   window.handleKakaoMapLoadError=function(){{
-    loadInlineKakaoSdk();
+    showMapError('카카오 지도 SDK를 불러오지 못했습니다.<br>JavaScript 키와 도메인 등록을 확인해 주세요.');
   }};
-
-  var inlineKakaoTried=false;
-  function loadInlineKakaoSdk(){{
-    if(inlineKakaoTried){{
-      showMapError('카카오 지도 SDK를 불러오지 못했습니다.<br>JavaScript 키와 도메인 등록을 확인해 주세요.');
-      return;
-    }}
-    inlineKakaoTried=true;
-    var sdkText={sdk_script_js};
-    if(!sdkText){{
-      showMapError('카카오 지도 SDK를 불러오지 못했습니다.<br>JavaScript 키와 도메인 등록을 확인해 주세요.');
-      return;
-    }}
-    var script=document.createElement('script');
-    script.text=sdkText;
-    script.onload=function(){{initKakaoMap();}};
-    document.head.appendChild(script);
-    window.setTimeout(initKakaoMap,0);
-  }}
 
   window.initKakaoMap=function(){{
     try{{
@@ -535,10 +501,6 @@ def build_map_html(places: list[dict], key: str, course_places: list[dict] = Non
 }}
       }});
     }}catch(e){{
-      if(!inlineKakaoTried){{
-        loadInlineKakaoSdk();
-        return;
-      }}
       showMapError('카카오 지도를 초기화하지 못했습니다.<br>'+String(e.message||e));
       console.error(e);
     }}
