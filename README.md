@@ -4,6 +4,8 @@
 
 반려견과 함께 어디든 갈 수 있도록, 전국 반려견 동반 가능 장소를 지도 위에서 탐색하고 AI가 맞춤 코스를 추천해드립니다.
 
+**[앱 바로가기](https://dengdengmap-zivnmzwjby6rszjmrtegwc.streamlit.app/)**
+
 ---
 
 ## 주요 기능
